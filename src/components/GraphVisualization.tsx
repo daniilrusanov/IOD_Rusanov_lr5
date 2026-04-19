@@ -61,6 +61,27 @@ function computeLevels(
   return level
 }
 
+/** Позиції з normalized coords (див. graphs.fixedLayout), узгоджено з layoutDag по внутрішній області. */
+function layoutFixed(
+  sub: SubsystemDef,
+  x0: number,
+  innerTop: number,
+  innerH: number,
+  colW: number,
+): Map<number, { x: number; y: number }> {
+  const pos = new Map<number, { x: number; y: number }>()
+  const padX = 20
+  const innerLeft = x0 + padX
+  const innerW = colW - 2 * padX
+  for (const p of sub.fixedLayout ?? []) {
+    pos.set(p.deviceIndex, {
+      x: innerLeft + p.fx * innerW,
+      y: innerTop + p.fy * innerH,
+    })
+  }
+  return pos
+}
+
 function layoutDag(
   sub: SubsystemDef,
   cx: number,
@@ -159,7 +180,10 @@ export function GraphVisualization({ preset, devices }: Props) {
           const edges = sub.edges
 
           if (edges && edges.length > 0) {
-            const pos = layoutDag(sub, cx, innerTop, innerH, colW)
+            const pos =
+              sub.fixedLayout && sub.fixedLayout.length > 0
+                ? layoutFixed(sub, x0, innerTop, innerH, colW)
+                : layoutDag(sub, cx, innerTop, innerH, colW)
             return (
               <g key={sub.id}>
                 <rect

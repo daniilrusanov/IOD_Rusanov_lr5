@@ -26,6 +26,16 @@ export type ComputeResult = {
   devices: DeviceResult[]
   /** Сумарна реальна продуктивність R = Σ r⁽ⁱ⁾ */
   totalRealR: number
+  /** Σ πᵢ — сума пікових продуктивностей усіх пристроїв (пікова продуктивність системи) */
+  peakPiSum: number
+  /** max πᵢ серед пристроїв */
+  maxPeakPi: number
+  /** Індекс пристрою з максимальним πᵢ */
+  maxPeakPiIndex: number
+  /** Завантаженість системи ρ = R / Σπᵢ */
+  systemLoadRho: number
+  /** Прискорення системи S = R / max πᵢ (як у прикладі методички: 73/12 ≈ 6,08) */
+  systemSpeedupS: number
   incompatible: boolean
   incompatibilityMessages: string[]
   incompatibilityCauses: string[]
@@ -92,6 +102,19 @@ export function computeSystem(
 
   const totalRealR = subsOut.reduce((s, x) => s + x.r, 0)
 
+  let peakPiSum = 0
+  let maxPeakPi = peakPi[0] ?? 0
+  let maxPeakPiIndex = 0
+  for (let i = 0; i < n; i++) {
+    peakPiSum += peakPi[i]
+    if (peakPi[i] > maxPeakPi + EPS) {
+      maxPeakPi = peakPi[i]
+      maxPeakPiIndex = i
+    }
+  }
+  const systemLoadRho = peakPiSum > 0 ? totalRealR / peakPiSum : 0
+  const systemSpeedupS = maxPeakPi > 0 ? totalRealR / maxPeakPi : 0
+
   for (const d of devices) {
     if (d.load > 1 + 1e-6) {
       incompatibilityMessages.push(
@@ -110,6 +133,11 @@ export function computeSystem(
     subsystems: subsOut,
     devices,
     totalRealR,
+    peakPiSum,
+    maxPeakPi,
+    maxPeakPiIndex,
+    systemLoadRho,
+    systemSpeedupS,
     incompatible,
     incompatibilityMessages,
     incompatibilityCauses,
