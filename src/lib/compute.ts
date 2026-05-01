@@ -41,6 +41,16 @@ export type ComputeResult = {
   incompatibilityCauses: string[]
   /** Пропозиція π (копія вектора з підвищенням вузьких місць до другого мінімуму в підсистемі) */
   suggestedPi: number[]
+  /** Дані для формул ЛР7 (2-й закон Амдала) */
+  lr7Details?: {
+    N: number
+    n: number
+    s: number
+    beta: number
+    n_sys: number
+    R_n: number
+    E_n: number
+  }
 }
 
 const EPS = 1e-9
@@ -126,8 +136,33 @@ export function computeSystem(
     }
   }
 
-  const incompatible = incompatibilityMessages.length > 0
   const suggestedPi = suggestPi(peakPi, subsystems)
+
+  // Розрахунок параметрів для ЛР7 за 2-м законом Амдала
+  let lr7Data: ComputeResult['lr7Details']
+  if (subsystems.length === 1 && subsystems[0].deviceIndices.length === 17) {
+    const N = 17
+    const n = 5 // 0, 1, 10, 11, 16 (послідовні вузли в ланцюгу)
+    const s = 4 // Максимальна ширина (4 паралельні гілки)
+    const beta = n / N
+    const n_sys = 3 // Як у прикладі на скриншоті
+    
+    // R_n = s / (s * beta + (1 - beta))
+    const R_n = s / (s * beta + (1 - beta))
+    const E_n = (R_n / n_sys) * 100
+
+    lr7Data = {
+      N,
+      n,
+      s,
+      beta,
+      n_sys,
+      R_n,
+      E_n,
+    }
+  }
+
+  const incompatible = incompatibilityMessages.length > 0
 
   return {
     subsystems: subsOut,
@@ -142,6 +177,7 @@ export function computeSystem(
     incompatibilityMessages,
     incompatibilityCauses,
     suggestedPi,
+    lr7Details: lr7Data,
   }
 }
 

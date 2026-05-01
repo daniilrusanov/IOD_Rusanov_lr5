@@ -9,14 +9,18 @@ import {
 import './App.css'
 
 const FIXED_VARIANT = variantForOrderNumber(STUDENT_ORDER_NUMBER)
-const FIXED_FP = fpForOrderNumber(STUDENT_ORDER_NUMBER)
 
-type PageId = 'lab5' | 'lab6'
+type PageId = 'lab5' | 'lab6' | 'lab7'
 
 export default function App() {
   const [page, setPage] = useState<PageId>('lab5')
 
-  const preset = useMemo(() => getGraphPreset(FIXED_FP), [])
+  const labNum = page === 'lab7' ? 7 : page === 'lab6' ? 6 : 5
+
+  const preset = useMemo(() => {
+    const fp = fpForOrderNumber(STUDENT_ORDER_NUMBER, labNum)
+    return getGraphPreset(fp)
+  }, [labNum])
 
   return (
     <div className="app">
@@ -35,15 +39,22 @@ export default function App() {
         >
           Лабораторна 6
         </button>
+        <button
+          type="button"
+          className={`nav-tab ${page === 'lab7' ? 'active' : ''}`}
+          onClick={() => setPage('lab7')}
+        >
+          Лабораторна 7
+        </button>
       </nav>
 
       <FunctionalDevicesLab
-        labNumber={page === 'lab6' ? 6 : 5}
+        labNumber={labNum}
         studentOrderNumber={STUDENT_ORDER_NUMBER}
         fixedVariant={FIXED_VARIANT}
-        fixedFp={FIXED_FP}
+        fixedFp={preset.id}
         preset={preset}
-        showSystemMetrics={page === 'lab6'}
+        showSystemMetrics={page === 'lab6' || page === 'lab7'}
       />
     </div>
   )

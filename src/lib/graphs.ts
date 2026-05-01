@@ -1,4 +1,3 @@
-import { DEVICE_COUNT } from './table1'
 
 /** Ребро направленого графа всередині підсистеми (індекси пристроїв). */
 export type SubsystemEdge = { readonly from: number; readonly to: number }
@@ -31,11 +30,11 @@ export type GraphPreset = {
   subsystems: readonly SubsystemDef[]
 }
 
-function assertPartition(subsystems: readonly SubsystemDef[]): void {
+function assertPartition(subsystems: readonly SubsystemDef[], totalDevices: number): void {
   const seen = new Set<number>()
   for (const s of subsystems) {
     for (const i of s.deviceIndices) {
-      if (i < 0 || i >= DEVICE_COUNT) {
+      if (i < 0 || i >= totalDevices) {
         throw new Error(`Індекс пристрою поза діапазоном: ${i}`)
       }
       if (seen.has(i)) {
@@ -44,7 +43,7 @@ function assertPartition(subsystems: readonly SubsystemDef[]): void {
       seen.add(i)
     }
   }
-  if (seen.size !== DEVICE_COUNT) {
+  if (seen.size !== totalDevices) {
     throw new Error('Підсистеми мають покривати всі пристрої рівно один раз')
   }
 }
@@ -123,11 +122,86 @@ const FP1: GraphPreset = {
   ],
 }
 
-assertPartition(FP0.subsystems)
-assertPartition(FP1.subsystems)
+/**
+ * Рисунок для Лабораторної 7 (ФП=2): "Система 2" з методички.
+ * Складається з 17 пристроїв (0-16).
+ */
+const FP2: GraphPreset = {
+  id: 2,
+  name: 'Граф системи 2 (Лабораторна 7)',
+  description: 'Система 2 за варіантом 22 (рис. 2 з методички ЛР7).',
+  subsystems: [
+    {
+      id: 1,
+      label: 'Система 2',
+      deviceIndices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+      edges: [
+        { from: 0, to: 1 },
+        // Розгалуження на 4 паралельні гілки
+        { from: 1, to: 2 },
+        { from: 1, to: 4 },
+        { from: 1, to: 6 },
+        { from: 1, to: 8 },
+        // Послідовні з'єднання в гілках
+        { from: 2, to: 3 },
+        { from: 4, to: 5 },
+        { from: 6, to: 7 },
+        { from: 8, to: 9 },
+        // Злиття гілок
+        { from: 3, to: 10 },
+        { from: 5, to: 10 },
+        { from: 7, to: 10 },
+        { from: 9, to: 10 },
+        // Проміжний сегмент
+        { from: 10, to: 11 },
+        // Розгалуження на 4 паралельні гілки
+        { from: 11, to: 12 },
+        { from: 11, to: 13 },
+        { from: 11, to: 14 },
+        { from: 11, to: 15 },
+        // Злиття гілок
+        { from: 12, to: 16 },
+        { from: 13, to: 16 },
+        { from: 14, to: 16 },
+        { from: 15, to: 16 },
+      ],
+      fixedLayout: [
+        { deviceIndex: 0, fx: 0.05, fy: 0.5 },
+        { deviceIndex: 1, fx: 0.15, fy: 0.5 },
+        // Гілка 1
+        { deviceIndex: 2, fx: 0.3, fy: 0.2 },
+        { deviceIndex: 3, fx: 0.45, fy: 0.2 },
+        // Гілка 2
+        { deviceIndex: 4, fx: 0.3, fy: 0.4 },
+        { deviceIndex: 5, fx: 0.45, fy: 0.4 },
+        // Гілка 3
+        { deviceIndex: 6, fx: 0.3, fy: 0.6 },
+        { deviceIndex: 7, fx: 0.45, fy: 0.6 },
+        // Гілка 4
+        { deviceIndex: 8, fx: 0.3, fy: 0.8 },
+        { deviceIndex: 9, fx: 0.45, fy: 0.8 },
+        // Convergence
+        { deviceIndex: 10, fx: 0.55, fy: 0.5 },
+        { deviceIndex: 11, fx: 0.65, fy: 0.5 },
+        // 4 branches
+        { deviceIndex: 12, fx: 0.75, fy: 0.2 },
+        { deviceIndex: 13, fx: 0.75, fy: 0.4 },
+        { deviceIndex: 14, fx: 0.75, fy: 0.6 },
+        { deviceIndex: 15, fx: 0.75, fy: 0.8 },
+        // Final
+        { deviceIndex: 16, fx: 0.85, fy: 0.5 },
+      ],
+    },
+  ],
+}
 
-export const GRAPH_PRESETS: readonly GraphPreset[] = [FP0, FP1]
+assertPartition(FP0.subsystems, 15)
+assertPartition(FP1.subsystems, 15)
+assertPartition(FP2.subsystems, 17)
+
+export const GRAPH_PRESETS: readonly GraphPreset[] = [FP0, FP1, FP2]
 
 export function getGraphPreset(fp: number): GraphPreset {
+  if (fp === 2) return FP2
   return fp === 1 ? FP1 : FP0
 }
