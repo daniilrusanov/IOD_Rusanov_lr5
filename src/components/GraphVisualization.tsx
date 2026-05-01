@@ -147,7 +147,6 @@ function shortenToCircle(
 export function GraphVisualization({ preset, devices }: Props) {
   const colCount = preset.subsystems.length
   const colW = (W - 2 * PAD) / colCount
-  const hasAnyDag = preset.subsystems.some((s) => s.edges && s.edges.length > 0)
 
   return (
     <div className="graph-viz">
@@ -299,11 +298,6 @@ export function GraphVisualization({ preset, devices }: Props) {
           )
         })}
       </svg>
-      <p className="graph-legend">
-        Коло — функціональний пристрій (індекс відповідає π у таблиці). Стрілки — зв’язки в межах
-        підсистеми{hasAnyDag ? ' (для ФП=1 — як на рис. 3)' : ' (послідовне з’єднання)'}. Підсистеми
-        незалежні (паралельні гілки). Вузьке місце підсистеми підсвічено.
-      </p>
     </div>
   )
 }
